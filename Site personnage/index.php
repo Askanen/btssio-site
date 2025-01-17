@@ -198,7 +198,7 @@ tables :
             <div class="row justify-content-center">
                 <div class="col-md-6">
                     <div class="progress">
-                        <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%;"></div>
+                        <div class="progress-bar progress-bar-striped progress-bar-animated bg-success" role="progressbar" style="width: 0%;"></div>
                     </div>
                 </div>
             </div>
