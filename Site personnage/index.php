@@ -204,7 +204,7 @@ tables :
             </div>
         </div>
         <div class="container mt-4">
-            <form method="GET" action="" class="row g-3">
+            <form method="GET" action="" class="row g-3" id="filter-form">
                 <div class="col-md-4">
                     <label for="country" class="form-label"><i class="fa-solid fa-earth-europe"></i> Filtrer par pays</label>
                     <select id="country" name="country" class="form-select">
@@ -254,7 +254,7 @@ tables :
                     echo '<h5 class="card-title">' . $row['prenom'] . ' ' . $row['nom'] . ' <span class="fi fi-' . strtolower($row['drapeau']) . ' fis"></span></h5>';
                     $resume = strlen($row['resume']) > 150 ? substr($row['resume'], 0, 150) . '...' : $row['resume'];
                     echo '<p class="card-text">' . $resume . '</p>';
-                    echo '<button class="mx-auto btn btn-outline-info" data-bs-toggle="modal" data-bs-target="#' . strtolower($row['nom']) . '">En apprendre plus sur ' . $row['nom'] . '</button>';
+                    echo '<button class="mx-auto btn btn-outline-info" data-bs-toggle="modal" data-bs-target="#' . strtolower($row['nom']) . '"><i class="fa-solid fa-book-bookmark"></i> En apprendre plus sur ' . $row['nom'] . '</button>';
                     echo '</div></div></div>';
                     $i++;
                 }
@@ -286,11 +286,46 @@ tables :
         }, 150);
     });
 
+    document.getElementById('filter-form').addEventListener('submit', function(event) {
+        event.preventDefault();
+        const form = this;
+        const progressBarContainer = document.getElementById('progress-bar-container');
+        const progressBar = progressBarContainer.querySelector('.progress-bar');
+        progressBar.style.width = '0%';
+        progressBarContainer.style.display = 'block';
+
+        let width = 0;
+        const interval = setInterval(() => {
+            if (width >= 100) {
+                clearInterval(interval);
+                form.submit();
+            } else {
+                width += 15;
+                progressBar.style.width = width + '%';
+            }
+        }, 150);
+    });
+
     function randomCharacter() {
         const characters = <?php echo json_encode($characters); ?>;
         const randomCharacter = characters[Math.floor(Math.random() * characters.length)];
         const searchQuery = randomCharacter.nom;
-        window.location.href = '?search=' + encodeURIComponent(searchQuery);
+
+        const progressBarContainer = document.getElementById('progress-bar-container');
+        const progressBar = progressBarContainer.querySelector('.progress-bar');
+        progressBar.style.width = '0%';
+        progressBarContainer.style.display = 'block';
+
+        let width = 0;
+        const interval = setInterval(() => {
+            if (width >= 100) {
+                clearInterval(interval);
+                window.location.href = '?search=' + encodeURIComponent(searchQuery);
+            } else {
+                width += 15;
+                progressBar.style.width = width + '%';
+            }
+        }, 150);
     }
 </script>
 <?php
