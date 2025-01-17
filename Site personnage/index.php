@@ -17,10 +17,41 @@ if (isset($_GET['search'])) {
     $search = $_GET['search'];
 }
 
-$sql = "SELECT p.*, v.url, pd.drapeau, pd.nom AS nom_pays, pd.capitale FROM perso p 
-        LEFT JOIN visuel v ON p.id_perso = v.id_visuel 
-        LEFT JOIN pays_des_personnages pd ON p.id_perso = pd.id_pays 
-        WHERE p.nom LIKE '%$search%' OR p.prenom LIKE '%$search%' ORDER BY p.id_perso";
+$sort = '';
+$order = 'ASC';
+if (isset($_GET['sort'])) {
+    if ($_GET['sort'] == 'prenom_asc') {
+        $sort = 'prenom';
+        $order = 'ASC';
+    } elseif ($_GET['sort'] == 'prenom_desc') {
+        $sort = 'prenom';
+        $order = 'DESC';
+    }
+}
+
+// Fetch distinct countries for the filter
+$countries_sql = "SELECT DISTINCT pd.nom AS nom_pays FROM pays_des_personnages pd";
+$countries_result = $conn->query($countries_sql);
+$countries = [];
+while ($country_row = $countries_result->fetch_assoc()) {
+    $countries[] = $country_row['nom_pays'];
+}
+
+if (isset($_GET['country']) && $_GET['country'] != '') {
+    $country_filter = $_GET['country'];
+    $sql = "SELECT p.*, v.url, pd.drapeau, pd.nom AS nom_pays, pd.capitale FROM perso p 
+            LEFT JOIN visuel v ON p.id_perso = v.id_visuel 
+            LEFT JOIN pays_des_personnages pd ON p.id_perso = pd.id_pays 
+            WHERE (p.nom LIKE '%$search%' OR p.prenom LIKE '%$search%') AND pd.nom = '" . $conn->real_escape_string($country_filter) . "' 
+            ORDER BY p." . ($sort ? $sort : 'id_perso') . " " . $order;
+} else {
+    $sql = "SELECT p.*, v.url, pd.drapeau, pd.nom AS nom_pays, pd.capitale FROM perso p 
+            LEFT JOIN visuel v ON p.id_perso = v.id_visuel 
+            LEFT JOIN pays_des_personnages pd ON p.id_perso = pd.id_pays 
+            WHERE p.nom LIKE '%$search%' OR p.prenom LIKE '%$search%' 
+            ORDER BY p." . ($sort ? $sort : 'id_perso') . " " . $order;
+}
+
 $result = $conn->query($sql);
 
 $succes_sql = "SELECT s.id_perso, s.resume AS succes_resume, s.description AS succes_description FROM succes s";
@@ -29,6 +60,14 @@ $succes_result = $conn->query($succes_sql);
 $succes_data = [];
 while ($succes_row = $succes_result->fetch_assoc()) {
     $succes_data[$succes_row['id_perso']][] = $succes_row;
+}
+
+// Fetch all character IDs and names for random selection
+$ids_sql = "SELECT id_perso, nom, prenom FROM perso";
+$ids_result = $conn->query($ids_sql);
+$characters = [];
+while ($id_row = $ids_result->fetch_assoc()) {
+    $characters[] = $id_row;
 }
 ?>
 
@@ -74,6 +113,7 @@ tables :
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" integrity="sha512-jnSuA4Ss2PkkikSOLtYs8BlYIeeIK1h99ty4YfvRPAlzr377vr3CXDb7sb7eEEBYjDtcYj+AjBH3FLv5uSJuXg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
         <link rel="stylesheet" href="./boostrap/flag-icons/css/flag-icon.min.css">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/lipis/flag-icons@7.2.3/css/flag-icons.min.css"/>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
         <link rel="icon" type="image/x-icon" href="julienblanc.ico">
     </head>
     <!-- MODALS -->
@@ -115,7 +155,7 @@ tables :
         if (isset($succes_data[$row['id_perso']])) {
             foreach ($succes_data[$row['id_perso']] as $succes) {
                 echo '<tr>';
-                echo '<td>' . $succes['succes_resume'] . '</td>';
+                echo '<td class="fw-bold">' . $succes['succes_resume'] . '</td>';
                 echo '<td>' . $succes['succes_description'] . '</td>';
                 echo '</tr>';
             }
@@ -146,7 +186,7 @@ tables :
                 </button>
                 <form class="d-flex mx-auto" role="search" method="GET" action="">
                     <input class="form-control me-2" style="width: 230px;" type="search" name="search" placeholder="Rechercher un personnage" aria-label="Search" value="<?php echo htmlspecialchars($search); ?>">
-                    <button class="btn btn-outline-success" type="submit">Rechercher</button>
+                    <button class="btn btn-outline-success" type="submit"><i class="fa-solid fa-magnifying-glass"></i> Rechercher</button>
                 </form>
                 <a class="navbar-brand ml-100" href="#">
                     <img src="/img/stcharlesstecroix.png" alt="Stcharles Stecroix" width="240" height="100">
@@ -162,6 +202,35 @@ tables :
                     </div>
                 </div>
             </div>
+        </div>
+        <div class="container mt-4">
+            <form method="GET" action="" class="row g-3">
+                <div class="col-md-4">
+                    <label for="country" class="form-label"><i class="fa-solid fa-earth-europe"></i> Filtrer par pays</label>
+                    <select id="country" name="country" class="form-select">
+                        <option value="">Tous les pays</option>
+                        <?php foreach ($countries as $country): ?>
+                            <option value="<?php echo htmlspecialchars($country); ?>" <?php echo (isset($_GET['country']) && $_GET['country'] == $country) ? 'selected' : ''; ?>>
+                                <?php echo htmlspecialchars($country); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="sort" class="form-label"><i class="fa-solid fa-arrow-up-z-a"></i> Trier par</label>
+                    <select id="sort" name="sort" class="form-select">
+                        <option value="">Par défaut</option>
+                        <option value="prenom_asc" <?php echo (isset($_GET['sort']) && $_GET['sort'] == 'prenom_asc') ? 'selected' : ''; ?>>Prénom (A-Z)</option>
+                        <option value="prenom_desc" <?php echo (isset($_GET['sort']) && $_GET['sort'] == 'prenom_desc') ? 'selected' : ''; ?>>Prénom (Z-A)</option>
+                    </select>
+                </div>
+                <div class="col-md-4 align-self-end">
+                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-filter"></i> Filtrer</button>
+                </div>
+                <div class="col-md-4 align-self-end">
+                    <button type="button" class="btn btn-secondary" onclick="randomCharacter()"><i class="fa-solid fa-dice-five"></i> Personnage aléatoire</button>
+                </div>
+            </form>
         </div>
         <?php if ($result->num_rows == 0): ?>
             <div class="alert alert-warning text-center m-3" role="alert">
@@ -216,6 +285,13 @@ tables :
             }
         }, 150);
     });
+
+    function randomCharacter() {
+        const characters = <?php echo json_encode($characters); ?>;
+        const randomCharacter = characters[Math.floor(Math.random() * characters.length)];
+        const searchQuery = randomCharacter.nom;
+        window.location.href = '?search=' + encodeURIComponent(searchQuery);
+    }
 </script>
 <?php
 $conn->close();
