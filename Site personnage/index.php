@@ -127,7 +127,7 @@ tables :
         echo '<div class="modal-dialog modal-dialog-centered">';
         echo '<div class="modal-content">';
         echo '<div class="modal-header">';
-        echo '<h1 class="modal-title fs-5" id="exampleModalLabel">' . $row['prenom'] . ' ' . $row['nom'] . ' <span class="fi fi-' . strtolower($row['drapeau']) . ' fis"></span></h1>';
+        echo '<h1 class="modal-title fs-5" id="exampleModalLabel">' . $row['prenom'] . ' ' . $row['nom'] . ' <span class="fi fi-' . strtolower($row['drapeau']) . ' "></span></h1>';
         echo '<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>';
         echo '</div>';
         echo '<div class="modal-body">';
@@ -142,7 +142,7 @@ tables :
         echo '<div class="tab-content" id="myTabContent">';
         echo '<div class="tab-pane fade show active" id="' . $homeTabPaneId . '" role="tabpanel" aria-labelledby="home-tab" tabindex="0">';
 
-        echo '<p><span class="fw-bold">Pays</span>: ' . $row['nom_pays'] . ' <span class="fi fi-' . strtolower($row['drapeau']) . ' fis"></span> (' . $row['capitale'] . ')</p>';
+        echo '<p><span class="fw-bold">Pays</span>: ' . $row['nom_pays'] . ' <span class="fi fi-' . strtolower($row['drapeau']) . ' "></span> (' . $row['capitale'] . ')</p>';
         echo '<p><span class="fw-bold">Date de naissance</span>: ' . $row['date_naissance'] . '</p>';
         echo '<p><span class="fw-bold">Date de décès</span>: ' . $row['date_deces'] . '</p>';
         echo '<hr>';
@@ -251,7 +251,7 @@ tables :
                     echo '<img src="' . $row['url'] . '" class="card-img-top" data-bs-toggle="modal" data-bs-target="#' . strtolower($row['nom']) . '" width="400rem" height="400rem" alt="' . $row['nom'] . '">';
                     echo '<div class="card-body">';
                     echo '<ul class="nav nav-tabs">';
-                    echo '<h5 class="card-title">' . $row['prenom'] . ' ' . $row['nom'] . ' <span class="fi fi-' . strtolower($row['drapeau']) . ' fis"></span></h5>';
+                    echo '<h5 class="card-title">' . $row['prenom'] . ' ' . $row['nom'] . ' <span class="fi fi-' . strtolower($row['drapeau']) . '"></span></h5>';
                     $resume = strlen($row['resume']) > 150 ? substr($row['resume'], 0, 150) . '...' : $row['resume'];
                     echo '<p class="card-text">' . $resume . '</p>';
                     echo '<button class="mx-auto btn btn-outline-info" data-bs-toggle="modal" data-bs-target="#' . strtolower($row['nom']) . '"><i class="fa-solid fa-book-bookmark"></i> En apprendre plus sur ' . $row['nom'] . '</button>';
